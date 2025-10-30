@@ -140,30 +140,53 @@ export default function HomeScreen() {
     }
   }, [searchQuery, movies]);
 
-  // --- This is the download function (no changes) ---
+  // --- NEW, WEB-ONLY DOWNLOAD FUNCTION (FIXED) ---
   const startDownload = async (movie: Movie, token: string) => {
     setIsDownloading(true);
-    setDownloadProgress(50); // Show a simple "downloading" state
+    setDownloadProgress(33); // Show a "Starting..." state
 
     try {
-      // Pass the auth token as a URL parameter for web
-      const driveApiUrl = `https://www.googleapis.com/drive/v3/files/${movie.fileId}?alt=media&access_token=${token}`;
+      const driveApiUrl = `https://www.googleapis.com/drive/v3/files/${movie.fileId}?alt=media`;
       const cleanFileName = movie.title.replace(/[^a-zA-Z0-9.\-_]/g, '_') + '.mp4';
+
+      // 1. Make an authenticated fetch request
+      const response = await fetch(driveApiUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {
+        // This will catch 404s (File Not Found) or 403s (Permissions Error)
+        throw new Error(`Download failed with status: ${response.status}`);
+      }
+
+      setDownloadProgress(66); // Show a "Processing..." state
       
-      // Standard web method to trigger a download
+      // 2. Get the file as a blob
+      const blob = await response.blob();
+
+      // 3. Create a local URL for the blob
+      const blobUrl = URL.createObjectURL(blob);
+
+      // 4. Create a download link pointing to the local blob
       const link = document.createElement('a');
-      link.href = driveApiUrl;
+      link.href = blobUrl;
       link.setAttribute('download', cleanFileName);
       
-      // Append to body, click, and then remove
+      // 5. Trigger the download
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
       
-      Alert.alert('Download Started', `${movie.title} is downloading in your browser.`);
+      // 6. Clean up
+      document.body.removeChild(link);
+      URL.revokeObjectURL(blobUrl); // Free up memory
+
+      Alert.alert('Download Started', `${movie.title} is downloading...`);
+
     } catch (e) {
       console.error('Download error:', e);
-      Alert.alert('Download Failed', 'Could not download the file.');
+      Alert.alert('Download Failed', 'Could not download the file. Check console for errors.');
     } finally {
       // Reset the UI
       setIsDownloading(false);
