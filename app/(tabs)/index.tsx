@@ -1,31 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  View,
+  ActivityIndicator,
+  Alert,
+  Button,
   FlatList,
   Image,
-  ActivityIndicator,
-  // SafeAreaView,
-  TouchableOpacity,
-  Alert,
-  Button, // Added Button import
-  TextInput
+  StyleSheet,
+  Text, // Added Button import
+  TextInput,
+  View
 } from 'react-native';
-import axios from 'axios';
 // This component from Expo Router lets us set the screen's title in the header
 import { Stack } from 'expo-router';
 
 // imported for google web login and file system access
-import * as WebBrowser from 'expo-web-browser';
 import * as Google from 'expo-auth-session/providers/google';
-import * as FileSystem from 'expo-file-system/legacy';
+import * as WebBrowser from 'expo-web-browser';
+// import * as FileSystem from 'expo-file-system/legacy';
 
 // import 'dotenv/config';
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 // --- FIX: Correct import for SafeAreaView ---
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 // ---
 // TODO: Replace this with your Gist's "Raw" URL
@@ -146,33 +143,29 @@ export default function HomeScreen() {
   // --- This is the download function (no changes) ---
   const startDownload = async (movie: Movie, token: string) => {
     setIsDownloading(true);
-    setDownloadProgress(0);
-
-    const driveApiUrl = `https://www.googleapis.com/drive/v3/files/${movie.fileId}?alt=media`;
-    const fileUri = FileSystem.documentDirectory + `${movie.title.replace(/ /g, '_')}.mp4`;
-    console.log('Downloading to:', fileUri);
-
-    const progressCallback = (downloadProgress: FileSystem.DownloadProgressData) => {
-      const progress = (downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite) * 100;
-      setDownloadProgress(progress);
-    };
+    setDownloadProgress(50); // Show a simple "downloading" state
 
     try {
-      const downloadResumable = FileSystem.createDownloadResumable(
-        driveApiUrl,
-        fileUri,
-        { headers: { 'Authorization': `Bearer ${token}` } },
-        progressCallback
-      );
-      const result = await downloadResumable.downloadAsync();
-      if (result) {
-        console.log('Finished downloading to ', result.uri);
-        Alert.alert('Download Complete', `${movie.title} has been saved to your device.`);
-      }
+      // Pass the auth token as a URL parameter for web
+      const driveApiUrl = `https://www.googleapis.com/drive/v3/files/${movie.fileId}?alt=media&access_token=${token}`;
+      const cleanFileName = movie.title.replace(/[^a-zA-Z0-9.\-_]/g, '_') + '.mp4';
+      
+      // Standard web method to trigger a download
+      const link = document.createElement('a');
+      link.href = driveApiUrl;
+      link.setAttribute('download', cleanFileName);
+      
+      // Append to body, click, and then remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      Alert.alert('Download Started', `${movie.title} is downloading in your browser.`);
     } catch (e) {
       console.error('Download error:', e);
       Alert.alert('Download Failed', 'Could not download the file.');
     } finally {
+      // Reset the UI
       setIsDownloading(false);
       setDownloadProgress(0);
     }
@@ -221,7 +214,7 @@ export default function HomeScreen() {
 
   // --- Render movie list ---
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* This Stack.Screen component lets us set the title of the header bar */}
       <Stack.Screen options={{ title: 'Movie Catalog' }} />
       
@@ -248,7 +241,7 @@ export default function HomeScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
