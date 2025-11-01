@@ -12,14 +12,6 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-// export const metadata = {
-//   title: 'Cinema Drive',
-//   description: 'An app to manage and stream my personal movie collection.',
-//   verification: {
-//     google: 'K6Vd7hoP0MhU3Kdb1LQKjbmlfO4RhJIU4fUZRiBZyxM',
-//   }
-// };
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
@@ -28,7 +20,7 @@ export default function RootLayout() {
       <Head>
         <title>CinemaDrive</title>
         <meta name="description" content="An app to manage and stream my personal movie collection." />
-        <meta name="google-site-verification" content="K6Vd7hoP0MhU3Kdb1LQKjbmlfO4RhJIU4fUZRiBZyxM" />
+        <meta name="google-site-verification" content="EXPO_PUBLIC_GOOGLE_SITE_VERIFICATION" />
       </Head>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
