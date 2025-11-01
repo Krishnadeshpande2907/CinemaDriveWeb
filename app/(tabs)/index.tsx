@@ -22,6 +22,8 @@ import * as WebBrowser from 'expo-web-browser';
 // import 'dotenv/config';
 // import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
+import { SpeedInsights } from "@vercel/speed-insights/next";
+
 // --- FIX: Correct import for SafeAreaView ---
 
 // ---
@@ -303,6 +305,7 @@ export default function HomeScreen() {
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
       />
+      <SpeedInsights />
     </View>
   );
 }
