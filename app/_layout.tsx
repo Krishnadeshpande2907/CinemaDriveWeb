@@ -9,6 +9,14 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
+export const metadata = {
+  title: 'Cinema Drive',
+  description: 'An app to manage and stream my personal movie collection.',
+  verification: {
+    google: 'K6Vd7hoP0MhU3Kdb1LQKjbmlfO4RhJIU4fUZRiBZyxM',
+  }
+};
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
