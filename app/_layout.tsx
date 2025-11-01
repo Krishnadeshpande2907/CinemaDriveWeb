@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
+import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 import { Analytics } from "@vercel/analytics/react"; // 1. Import Analytics
@@ -11,19 +12,24 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-export const metadata = {
-  title: 'Cinema Drive',
-  description: 'An app to manage and stream my personal movie collection.',
-  verification: {
-    google: 'K6Vd7hoP0MhU3Kdb1LQKjbmlfO4RhJIU4fUZRiBZyxM',
-  }
-};
+// export const metadata = {
+//   title: 'Cinema Drive',
+//   description: 'An app to manage and stream my personal movie collection.',
+//   verification: {
+//     google: 'K6Vd7hoP0MhU3Kdb1LQKjbmlfO4RhJIU4fUZRiBZyxM',
+//   }
+// };
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      <Head>
+        <title>CinemaDrive</title>
+        <meta name="description" content="An app to manage and stream my personal movie collection." />
+        <meta name="google-site-verification" content="K6Vd7hoP0MhU3Kdb1LQKjbmlfO4RhJIU4fUZRiBZyxM" />
+      </Head>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
