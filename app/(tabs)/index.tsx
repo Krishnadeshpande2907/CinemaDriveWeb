@@ -72,7 +72,26 @@ export default function HomeScreen() {
     scopes: ['https://www.googleapis.com/auth/drive.readonly'], // Request read-only access
   });
 
-  // This useEffect handles the *response* from the login 
+  // // This useEffect handles the *response* from the login 
+  // useEffect(() => {
+  //   if (response) {
+  //     if (response.type === 'success') {
+  //       const { access_token } = response.params;
+  //       setAccessToken(access_token);
+        
+  //       // After logging in, if we had a movie waiting, download it
+  //       if (movieToDownload) {
+  //         startDownload(movieToDownload, access_token);
+  //         setMovieToDownload(null); // Clear the waiting movie
+  //       }
+  //     } else if (response.type === 'error') {
+  //       Alert.alert('Login Failed', 'There was an error logging in. Please try again.');
+  //       console.error('Login Error:', response.error);
+  //     }
+  //   }
+  // }, [response, movieToDownload]);
+
+  // --- NEW: This useEffect handles the login redirect ---
   useEffect(() => {
     if (response) {
       if (response.type === 'success') {
@@ -81,7 +100,7 @@ export default function HomeScreen() {
         
         // After logging in, if we had a movie waiting, download it
         if (movieToDownload) {
-          startDownload(movieToDownload, access_token);
+          startDownload(movieToDownload); // We don't need to pass the token
           setMovieToDownload(null); // Clear the waiting movie
         }
       } else if (response.type === 'error') {
@@ -140,69 +159,89 @@ export default function HomeScreen() {
     }
   }, [searchQuery, movies]);
 
-  // --- NEW, WEB-ONLY DOWNLOAD FUNCTION (FIXED) ---
-  const startDownload = async (movie: Movie, token: string) => {
-    setIsDownloading(true);
-    setDownloadProgress(33); // Show a "Starting..." state
+  // // --- NEW, WEB-ONLY DOWNLOAD FUNCTION (FIXED) ---
+  // const startDownload = async (movie: Movie, token: string) => {
+  //   setIsDownloading(true);
+  //   setDownloadProgress(33); // Show a "Starting..." state
 
-    try {
-      const driveApiUrl = `https://www.googleapis.com/drive/v3/files/${movie.fileId}?alt=media`;
-      const cleanFileName = movie.title.replace(/[^a-zA-Z0-9.\-_]/g, '_') + '.mp4';
+  //   try {
+  //     const driveApiUrl = `https://www.googleapis.com/drive/v3/files/${movie.fileId}?alt=media`;
+  //     const cleanFileName = movie.title.replace(/[^a-zA-Z0-9.\-_]/g, '_') + '.mp4';
 
-      // 1. Make an authenticated fetch request
-      const response = await fetch(driveApiUrl, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
+  //     // 1. Make an authenticated fetch request
+  //     const response = await fetch(driveApiUrl, {
+  //       headers: {
+  //         'Authorization': `Bearer ${token}`
+  //       }
+  //     });
 
-      if (!response.ok) {
-        // This will catch 404s (File Not Found) or 403s (Permissions Error)
-        throw new Error(`Download failed with status: ${response.status}`);
-      }
+  //     if (!response.ok) {
+  //       // This will catch 404s (File Not Found) or 403s (Permissions Error)
+  //       throw new Error(`Download failed with status: ${response.status}`);
+  //     }
 
-      setDownloadProgress(66); // Show a "Processing..." state
+  //     setDownloadProgress(66); // Show a "Processing..." state
       
-      // 2. Get the file as a blob
-      const blob = await response.blob();
+  //     // 2. Get the file as a blob
+  //     const blob = await response.blob();
 
-      // 3. Create a local URL for the blob
-      const blobUrl = URL.createObjectURL(blob);
+  //     // 3. Create a local URL for the blob
+  //     const blobUrl = URL.createObjectURL(blob);
 
-      // 4. Create a download link pointing to the local blob
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.setAttribute('download', cleanFileName);
+  //     // 4. Create a download link pointing to the local blob
+  //     const link = document.createElement('a');
+  //     link.href = blobUrl;
+  //     link.setAttribute('download', cleanFileName);
       
-      // 5. Trigger the download
-      document.body.appendChild(link);
-      link.click();
+  //     // 5. Trigger the download
+  //     document.body.appendChild(link);
+  //     link.click();
       
-      // 6. Clean up
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl); // Free up memory
+  //     // 6. Clean up
+  //     document.body.removeChild(link);
+  //     URL.revokeObjectURL(blobUrl); // Free up memory
 
-      Alert.alert('Download Started', `${movie.title} is downloading...`);
+  //     Alert.alert('Download Started', `${movie.title} is downloading...`);
 
-    } catch (e) {
-      console.error('Download error:', e);
-      Alert.alert('Download Failed', 'Could not download the file. Check console for errors.');
-    } finally {
-      // Reset the UI
-      setIsDownloading(false);
-      setDownloadProgress(0);
-    }
+  //   } catch (e) {
+  //     console.error('Download error:', e);
+  //     Alert.alert('Download Failed', 'Could not download the file. Check console for errors.');
+  //   } finally {
+  //     // Reset the UI
+  //     setIsDownloading(false);
+  //     setDownloadProgress(0);
+  //   }
+  // };
+
+  // --- NEW, SIMPLIFIED DOWNLOAD LOGIC ---
+  const startDownload = (movie: Movie) => {
+    // We no longer need the token. We just open the URL in a new tab.
+    // The browser is already logged in, so Google Drive will show the file.
+    window.open(movie.fileId, '_blank');
   };
 
-  // --- This is the "gate" function (no changes) ---
-  const handleDownloadPress = (movie: Movie) => {
-    if (isDownloading) return; 
+  // // --- This is the "gate" function (no changes) ---
+  // const handleDownloadPress = (movie: Movie) => {
+  //   if (isDownloading) return; 
 
+  //   if (accessToken) {
+  //     startDownload(movie, accessToken);
+  //   } else {
+  //     setMovieToDownload(movie);
+  //     // --- NEW: promptAsync will open the web login ---
+  //     promptAsync();
+  //   }
+  // };
+
+  const handleDownloadPress = (movie: Movie) => {
+    // 1. Check if user is logged in
     if (accessToken) {
-      startDownload(movie, accessToken);
+      // If yes, open the Google Drive link
+      startDownload(movie);
     } else {
+      // If no, set the movie to download *after* login
       setMovieToDownload(movie);
-      // --- NEW: promptAsync will open the web login ---
+      // Trigger the login
       promptAsync();
     }
   };
