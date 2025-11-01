@@ -2,6 +2,8 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { Analytics } from "@vercel/analytics/react"; // 1. Import Analytics
+import { SpeedInsights } from "@vercel/speed-insights/react"; // 2. Import Speed Insights
 
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -27,6 +29,8 @@ export default function RootLayout() {
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
+      <Analytics /> 
+      <SpeedInsights />
     </ThemeProvider>
   );
 }
