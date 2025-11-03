@@ -114,8 +114,12 @@ export default function HomeScreen() {
   const fetchMovies = async () => {
     try {
       const response = await axios.get(GIST_URL);
-      setMovies(response.data); // Store the movie array in state
-      setFilteredMovies(response.data); // Initially, filtered list is the full list
+      const sortedData = response.data.sort((a: Movie, b: Movie) => 
+        a.title.localeCompare(b.title)
+      );
+
+      setMovies(sortedData); // Store the sorted movie array
+      setFilteredMovies(sortedData); // Initially, set filtered list to sorted list
     } catch (error) {
       console.error('Error fetching movie list:', error);
       // You could set an error state here to show the user
